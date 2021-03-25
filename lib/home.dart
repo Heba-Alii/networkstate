@@ -1,83 +1,68 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'api.dart';
 import 'auther.dart';
 import 'model.dart';
 
 class Home extends StatefulWidget {
+  Home({Key key, this.title}) : super(key: key);
+
+  final String title;
+
   @override
-  _HomeState createState() => _HomeState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _HomeState extends State<Home> {
-  Future<List<Author>> authors;
-
+class _MyHomePageState extends State<Home> {
   @override
-  void initState() {
-    super.initState();
-
-      authors = API.getAllAuthors();
-
-
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    Provider.of<EmployeeApi>(context, listen: false).getAllEmployee();
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('Employees'),
+        title: Text(widget.title),
       ),
-      body: FutureBuilder<List<Author>>(
-        future: authors,
-        builder: (context, snapshot) {
-
-          if (snapshot.hasData) {
-            return ListView.builder(
-
-
-                itemCount: snapshot.data.length,
-                itemBuilder: (context, i) {
-                  return Card(
-                    child: ListTile(
-                      title: Text(snapshot.data[i].employee_name),
-                      subtitle: Row(
-                        children: <Widget>[
-                          Text(snapshot.data[i].profile_image),
-                          SizedBox(
-                            width: 100,
-                          ),
-                          Text('${snapshot.data[i].employee_age}'),
-                        ],
-                      ),
-                    ),
+      body: FutureBuilder(
+          future: Provider.of<EmployeeApi>(context,listen: false).getAllEmployee(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.data == null) {
+              return Container(
+                child: Center(
+                  child: Text("Loading data"),
+                ),
+              );
+            } else {
+              return Consumer<EmployeeApi>(
+                builder: (context, model, child) {
+                  return ListView.builder(
+                    itemCount: model.employees.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return ListTile(
+                        title: Text(model.employees[index].name),
+                        subtitle: Text(model.employees[index].age),
+                      );
+                    },
                   );
-                });
-          } else if (snapshot.hasError) {
-            print(snapshot.error);
-            return
-              Text('Sorry there is an error');
-
-
-          }
-          return CircularProgressIndicator();
-        },
-      ),
+                },
+              );
+            }
+          }),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () async {
-          await Navigator.push(
+        onPressed: () {
+          Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => AddAuthor(),
-            ),
+            MaterialPageRoute(builder: (context) => NewEmployee()),
           );
-          setState(() {
-            authors = API.getAllAuthors();
-          });
         },
-      ),
+        child: Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

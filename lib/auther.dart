@@ -3,89 +3,72 @@ import 'package:flutter/material.dart';
 
 import 'api.dart';
 import 'model.dart';
+import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:network/home.dart';
+import 'package:network/model.dart';
+import 'package:provider/provider.dart';
+class NewEmployee extends StatefulWidget {
+  NewEmployee({Key key, this.title = "Add Employee"}) : super(key: key);
 
-class AddAuthor extends StatefulWidget {
+  final String title;
+
   @override
-  _AddAuthorState createState() => _AddAuthorState();
+  _NewEmployeeState createState() => _NewEmployeeState();
 }
 
-class _AddAuthorState extends State<AddAuthor> {
-  String name;
-  String image;
-  int age;
-  int salary;
-
-  final addAuthor = GlobalKey<ScaffoldState>();
+class _NewEmployeeState extends State<NewEmployee> {
+  final Dio dio = Dio();
+  Employee employee;
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController ageController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: addAuthor,
       appBar: AppBar(
-        title: Text('Add Employee'),
+        title: Text(widget.title),
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              TextField(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: nameController,
                 decoration: InputDecoration(
                   labelText: 'Employee Name',
-                  hintText: 'Enter Employee name',
+                  hintText: 'Enter Employee Name',
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    name = value;
-                  });
-                },
               ),
-              TextField(
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: ageController,
                 decoration: InputDecoration(
-                  labelText: 'Employee Image',
-                  hintText: 'Enter Employee Image',
+                  labelText: 'Employee Age',
+                  hintText: 'Enter Employee Age',
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    image = value;
-                  });
-                },
               ),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Employee age',
-                  hintText: 'Enter Employee age',
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    age = int.parse(value);
-                  });
-                },
-              ),
-              RaisedButton(
-                child: Text('Save'),
-                onPressed: () {
-                  //send data to the internet (aqueduct server)
-                  API
-                      .createAuthor(Author(
-                    employee_name: name,
-                    employee_age: "$age",
-                    profile_image: image,
-                    employee_salary:"$salary",
-                  ))
-                      .then((author) {
-                    //show snackbar
-                    addAuthor.currentState.showSnackBar(SnackBar(
-                        content: Text(
-                            'the author with id ${author.id} has been created')));
+            ),
+            SizedBox(height: 20),
+
+            Consumer<EmployeeApi>(builder: (context, model, child) {
+              return ElevatedButton(
+                  onPressed: () {
+                    Employee e = Employee(nameController.text, ageController.text);
+                    model.createEmployee(e);
                     Navigator.pop(context);
-                  });
-                },
-              ),
-            ],
-          ),
+                  },
+                  child: Text("Save To List View")
+              );
+            })
+          ],
         ),
       ),
+      // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
